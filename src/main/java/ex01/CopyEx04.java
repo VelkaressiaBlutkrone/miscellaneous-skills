@@ -56,8 +56,11 @@ class DetailDto{
         // .stream() : 리스트를 스트림으로 변환하여 파이프라인 연산을 시작합니다.
         // .map(Reply::getComment) : 스트림의 각 Reply 객체에 대해 getComment() 메서드를 호출하여,
         //                         스트림의 요소를 Reply 객체에서 String(댓글 내용)으로 변환합니다.
-        // .collect(Collectors.toList()) : 스트림의 모든 요소를 수집하여 새로운 List<String>으로 만듭니다.
-        this.comments = board.getReplies().stream().map(Reply::getComment).collect(Collectors.toList());
+        // .toList() : 스트림의 모든 요소를 수집하여 새로운 List<String>으로 만듭니다.
+        this.comments = board.getReplies().stream()
+                .map(Reply::getComment)
+                .limit(2)
+                .toList();
     }
 }
 
