@@ -139,8 +139,75 @@ System.out.println(instant); // 예: 2026-01-30T06:48:21.546Z
 
 데이터베이스에 시간을 저장할 때는 `TIMESTAMP WITH TIME ZONE` 타입을 사용하고, 애플리케이션에서는 UTC `Instant`나 `ZonedDateTime`으로 다루는 것이 일반적입니다.
 
+## Stream
+
+Java 8에서 도입된 Stream API는 컬렉션(리스트, 셋 등)의 요소를 함수형 프로그래밍 스타일로 간결하고 효율적으로 처리하는 방법을 제공합니다. 데이터의 흐름(stream)을 만들고, 이 흐름에 중간 연산(intermediate operations)을 연결하여 데이터를 가공한 후, 최종 연산(terminal operation)으로 결과를 만들어냅니다. `ex03/StreamEx01.java` 파일에서 다양한 예제를 확인할 수 있습니다.
+
+### 주요 특징
+- **선언적 프로그래밍**: '무엇을' 할 것인지만 명시하고, '어떻게' 할 것인지는 내부적으로 처리합니다.
+- **지연 평가 (Lazy Evaluation)**: 최종 연산이 호출되기 전까지 중간 연산은 실행되지 않습니다.
+- **병렬 처리**: `parallelStream()`을 사용하여 간단하게 데이터 처리를 병렬화할 수 있습니다.
+- **일회성**: 스트림은 한 번 사용하면 닫힙니다. 다시 사용하려면 새로 생성해야 합니다.
+
+### 주요 기능 목록
+
+#### 1. 스트림 생성 (Creation)
+
+| 메서드 | 설명 |
+| --- | --- |
+| `stream()` | 컬렉션(List, Set 등)에서 스트림을 생성합니다. |
+| `parallelStream()` | 병렬 처리가 가능한 스트림을 생성합니다. |
+| `Stream.of(T... values)` | 주어진 값들로 스트림을 생성합니다. |
+| `Stream.iterate(T seed, UnaryOperator<T> f)` | 초기값(seed)과 함수를 이용해 무한 순차 스트림을 생성합니다. (예: `1, 3, 5, ...`) |
+| `Stream.generate(Supplier<T> s)` | `Supplier`를 이용해 무한 스트림을 생성합니다. (예: 랜덤 숫자) |
+| `Stream.ofNullable(T t)` | null일 수도 있는 객체로부터 안전하게 스트림을 생성합니다. (null이면 빈 스트림) |
+| `IntStream`, `LongStream`, `DoubleStream` | 기본형(primitive type)에 특화된 스트림으로, 성능상 이점이 있습니다. |
+| `Optional.stream()` | `Optional` 객체로부터 스트림을 생성합니다. (값이 있으면 요소 1개, 없으면 빈 스트림) |
+
+#### 2. 중간 연산 (Intermediate Operations)
+중간 연산은 또 다른 스트림을 반환하므로, 여러 연산을 체인 형태로 연결할 수 있습니다.
+
+| 메서드 | 설명 |
+| --- | --- |
+| `map(Function<T, R> mapper)` | 각 요소를 1:1로 변환합니다. `i -> i * 2` |
+| `flatMap(Function<T, Stream<R>> mapper)` | 각 요소를 스트림으로 변환한 후, 모든 스트림을 하나의 스트림으로 평탄화합니다. |
+| `mapMulti(BiConsumer<T, Consumer<R>> mapper)` | `flatMap`의 고성능/저수준 버전으로, 하나의 요소를 0개 또는 여러개로 매핑할 때 효율적입니다. (JDK 16+) |
+| `filter(Predicate<T> predicate)` | 주어진 조건(Predicate)에 맞는 요소만 남깁니다. |
+| `distinct()` | 중복된 요소를 제거합니다. `Object.equals()` 기준. |
+| `sorted()` | 요소를 자연 순서(오름차순)로 정렬합니다. `Comparator`를 인자로 받아 정렬 기준을 지정할 수 있습니다. |
+| `peek(Consumer<T> action)` | 스트림의 각 요소에 특정 동작을 수행합니다. 주로 디버깅 용도로 사용합니다. |
+| `limit(long maxSize)` | 스트림의 요소 개수를 주어진 수로 제한합니다. |
+| `skip(long n)` | 스트림의 처음 `n`개 요소를 건너뜁니다. |
+| `takeWhile(Predicate<T> predicate)` | (주로 정렬된 스트림에서) 조건을 만족하는 동안 요소를 선택하고, 조건이 깨지면 중단합니다. |
+| `dropWhile(Predicate<T> predicate)` | (주로 정렬된 스트림에서) 조건을 만족하는 동안 요소를 버리고, 조건이 깨지면 나머지 요소를 선택합니다. |
+| `mapToInt`, `mapToLong`, `mapToDouble` | 객체 스트림(`Stream<T>`)을 기본형 특화 스트림으로 변환합니다. |
+
+#### 3. 최종 연산 (Terminal Operations)
+최종 연산은 스트림을 소모하여 최종 결과를 반환합니다.
+
+| 메서드 | 설명 |
+| --- | --- |
+| `forEach(Consumer<T> action)` | 각 요소에 대해 지정된 동작을 수행합니다. 반환값이 없습니다. |
+| `collect(Collector<T, A, R> collector)` | 스트림의 요소를 `List`, `Set`, `Map` 등 다른 자료구조로 수집합니다. |
+| `toList()` | 스트림의 요소를 `List`로 수집합니다. (`collect(Collectors.toList())`의 축약형, JDK 16+) |
+| `count()` | 스트림의 요소 개수를 반환합니다. |
+| `reduce(...)` | 모든 요소를 하나의 결과로 누적 연산합니다. (예: `(a, b) -> a + b`) |
+| `findFirst()` | 스트림의 첫 번째 요소를 `Optional<T>`로 반환합니다. |
+| `findAny()` | 스트림의 임의의 요소 하나를 `Optional<T>`로 반환합니다. (병렬 처리에서 유리) |
+| `allMatch`, `anyMatch`, `noneMatch` | 모든/하나라도/아무것도 조건에 맞는지 여부를 `boolean`으로 반환합니다. (Short-circuiting) |
+| `sum()`, `average()`, `max()`, `min()` | 기본형 특화 스트림에서 사용할 수 있는 숫자 집계 연산입니다. |
+
+`collect` 연산은 `Collectors` 클래스의 팩토리 메서드와 함께 사용하여 매우 강력하고 다양한 기능을 수행할 수 있습니다.
+- `Collectors.toSet()`, `Collectors.toUnmodifiableSet()` : Set으로 수집
+- `Collectors.joining(",")` : 문자열로 결합
+- `Collectors.groupingBy(...)` : 특정 기준으로 그룹화하여 Map 생성
+- `Collectors.partitioningBy(...)` : `boolean` 기준으로 2분할하여 Map 생성
+- `Collectors.toMap(...)` : 스트림을 Map으로 변환
+- `Collectors.teeing(...)` : 두 개의 Collector를 동시에 적용 후 결과를 합침 (JDK 12+)
+
+
 ## Optional
 
-## Stream
+
 
 
