@@ -208,6 +208,68 @@ Java 8에서 도입된 Stream API는 컬렉션(리스트, 셋 등)의 요소를 
 
 ## Optional
 
+Java 8에서 도입된 `Optional<T>`는 `null`이 될 수도 있는 객체를 감싸는 컨테이너 클래스입니다. `Optional`을 사용함으로써 개발자는 해당 변수가 `null`일 수 있다는 것을 명시적으로 표현하고, `NullPointerException`(NPE)을 피하도록 강제할 수 있습니다. 이는 '실수'로 발생하는 NPE를 줄이고, 더 안전하고 가독성 높은 코드를 작성하는 데 도움을 줍니다.
+
+`ex04/OptEx01.java` 파일은 `Optional`의 주요 사용법을 보여줍니다.
+
+### `Optional` 객체 생성
+
+- **`Optional.of(value)`**: 절대 `null`이 아닌 값을 감쌀 때 사용합니다. 만약 `value`가 `null`이면 `NullPointerException`이 발생합니다.
+  ```java
+  Optional<String> opt = Optional.of("ssar");
+  ```
+
+- **`Optional.ofNullable(value)`**: `null`일 수도 있는 값을 감쌀 때 사용합니다. `value`가 `null`이면 비어있는 `Optional` 객체(`Optional.empty()`)를 반환합니다.
+  ```java
+  String name2 = null;
+  Optional<String> opt2 = Optional.ofNullable(name2); // 비어있는 Optional
+  ```
+
+### `Optional` 값 확인 및 접근
+
+- **`isPresent()` / `isEmpty()`**: `Optional`이 값을 가지고 있는지(`true`/`false`) 확인합니다. `isEmpty()`는 `!isPresent()`와 같으며 Java 11부터 제공됩니다.
+  ```java
+  if (opt2.isPresent()) { // false
+      System.out.println(opt2.get());
+  }
+  if (opt2.isEmpty()) { // true
+      // ...
+  }
+  ```
+
+- **`get()`**: 내부에 있는 값을 직접 반환합니다. 하지만 `Optional`이 비어있을 경우 `NoSuchElementException`이 발생하므로, `isPresent()`로 확인한 후에 호출하거나 다른 안전한 방법을 사용하는 것이 좋습니다.
+
+### `Optional`이 비어있을 때 값을 대체하는 방법
+
+`Optional`의 가장 큰 장점은 `null`일 경우를 대비한 다양한 대체 메서드를 제공한다는 점입니다.
+
+- **`orElse(other)`**: `Optional`이 비어있으면 `other` 값을 반환합니다.
+  ```java
+  // name3가 null이므로 "default"가 반환됨
+  String name = Optional.ofNullable(name3).orElse("default");
+  ```
+
+- **`orElseGet(supplier)`**: `Optional`이 비어있으면 제공된 `Supplier` 함수를 실행하여 그 결과를 반환합니다. `orElse`는 `Optional`의 값 존재 여부와 상관없이 항상 `other` 인자가 평가되지만, `orElseGet`은 `Optional`이 비어있을 때만 함수가 실행되므로, 대체 값을 생성하는 비용이 클 때 더 효율적입니다.
+  ```java
+  // name3가 null이므로 람다식이 실행되어 "default"가 반환됨
+  String name = Optional.ofNullable(name3).orElseGet(() -> "default");
+  ```
+
+- **`orElseThrow()`**: `Optional`이 비어있으면 `NoSuchElementException`을 발생시킵니다.
+  ```java
+  // name3가 null이므로 NoSuchElementException 발생
+  String result = Optional.ofNullable(name3).orElseThrow();
+  ```
+
+- **`orElseThrow(exceptionSupplier)`**: `Optional`이 비어있으면 제공된 `Supplier`를 통해 원하는 예외를 생성하여 발생시킬 수 있습니다.
+  ```java
+  // name3가 null이므로 지정된 예외 발생
+  String result = Optional.ofNullable(name3)
+                          .orElseThrow(() -> new IllegalArgumentException("이름이 없습니다"));
+  ```
+
+이처럼 `Optional`은 `null` 처리를 위한 명시적인 API를 제공하여 코드의 안정성을 높이는 강력한 도구입니다.
+
 
 
 
